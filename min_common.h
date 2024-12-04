@@ -10,6 +10,8 @@
 #include <linux/limits.h>
 #include <string.h>
 
+#define MIN_MINLS_ARGS  (2)
+
 #define BOOT_BLOCK_SIZE (512)
 #define SB_OFFSET       (1024)
 #define VALID_BYTE510   (0x55)

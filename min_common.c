@@ -7,7 +7,10 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
     args->subnum = -1;
     
     // min args len
-
+    if (argc < MIN_MINLS_ARGS) {
+        exit(EXIT_FAILURE);
+    }
+ 
     // minls [ -v ] [ -p part [ -s subpart ] ] imagefile [ path ]
     // minget [ -v ] [ -p part [ -s subpart ] ] imagefile srcpath [ dstpath ]
     // h flag?
