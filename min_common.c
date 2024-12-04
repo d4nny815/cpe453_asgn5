@@ -64,16 +64,21 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
 
     if (minls) {
         // pathname
+        // ? do I put default path
         optind++;
         if (optind < argc) {
             strncpy(args->path, argv[optind], PATH_MAX);
+        } else {
+            strncpy(args->path, DEFAULT_PATH, PATH_MAX);
         }
     }
     else {
+        // src_path
         optind++;
         strncpy(args->src_path, argv[optind], PATH_MAX);
         optind++;
         if (optind < argc) {
+            // dest_path
             strncpy(args->dst_path, argv[optind], PATH_MAX);
         }
     }
@@ -239,3 +244,20 @@ void print_file(Inode_t inode) {
 
     return;
 }
+
+uint32_t get_inode(char* target, DirEntry_t* zone, uint32_t zone_size) {
+    for (int i = 0; i < zone_size; i++) {
+        DirEntry_t dir_entry = zone[i];
+        // printf("%u %s\n", dir_entry.inode, dir_entry.name);
+        if (dir_entry.inode == 0) {
+            continue;
+        }
+
+        if (SAME_STR(target, dir_entry.name)) {
+            return dir_entry.inode;
+        }
+    }
+    return 0;
+}
+
+

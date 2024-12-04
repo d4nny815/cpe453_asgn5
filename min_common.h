@@ -23,6 +23,9 @@
 #define INODE_SIZE      (64)
 #define DIR_ENTRY_SIZE  (64)
 #define SECTOR_SIZE     (512)
+#define INVALID_INODE   (0)
+#define ROOT_INODE      (1)
+#define DEFAULT_PATH    ("/")
 
 #define FILE_TYPE_MASK  (0xF000)
 #define REGULAR_FILE    (0x8000)
@@ -36,6 +39,8 @@
 #define OTHER_READ      (4)
 #define OTHER_WRITE     (2)
 #define OTHER_EXEC      (1)
+
+#define SAME_STR(x, y)  (strcmp(x, y) == 0)
 
 typedef struct __attribute__ ((__packed__)) MinArgs_t {
     bool verbose;
