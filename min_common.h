@@ -84,5 +84,8 @@ typedef struct Inode_t {
 } Inode_t;
 
 
+int validate_partion_table(const FILE* file);
+PartitionTableEntry_t get_partion_entry(const FILE* file, int partnum, int subnum);
+
 
 #endif /* min_common.h */

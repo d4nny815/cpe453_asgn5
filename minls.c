@@ -1,5 +1,4 @@
 #include "min_common.h"
-#define DEFAULT_IMAGE ("HardDisk")
 
 // int parse_args();
 // void read_fs();
@@ -7,23 +6,16 @@
 
 int main(int argc, char** argv) {
     // read FS
-    uint8_t block[BLOCK_SIZE];
-    // char filename[100];
-    FILE* fs = fopen(DEFAULT_IMAGE, "r");
-
-    if (!fs) {
-        fprintf(stderr, "HELP ME\n");
+    FILE* fp = fopen("HardDisk", "r");
+    if (!fp) {
+        perror("file doesnt exist");
         exit(EXIT_FAILURE);
     }
 
-    size_t bytes = fread(block, 1, BLOCK_SIZE, fs);
+    validate_partion_table(fp);
+    PartitionTableEntry_t entry = get_partion_entry(fp, 0, 0);
 
-    PartitionTableEntry_t* p_part = (PartitionTableEntry_t*)(block + PART_TBL_OFFSET); 
-    printf("%p\n", p_part);
-    printf("%x\n", p_part->bootind);
-    printf("%x\n", p_part->type);
-
-    printf("\n%02x, %02x\n", block[510], block[511]);
+    printf("%x %x", entry.bootind, entry.type);
 
     return 0;
 }
