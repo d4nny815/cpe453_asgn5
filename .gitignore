@@ -1,3 +1,5 @@
 *.o
 minls
 minget
+HardDisk
+TestImage
