@@ -1,7 +1,11 @@
 #include "min_common.h"
 
-int main(void) {
-    print_msg();
+
+// int parse_args();
+
+
+int main(int argc, char** argv) {
+    // read FS
 
     return 0;
 }
