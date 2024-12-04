@@ -10,6 +10,9 @@
 #include <linux/limits.h>
 #include <string.h>
 
+#define MIN_MINLS_ARGS  (2)
+
+#define MIN_MINLS_ARGS  (2)
 #define PART_TBL_OFFSET (0x1BE)
 #define BOOT_BLOCK_SIZE (512)
 #define SB_OFFSET       (1024)
@@ -114,5 +117,12 @@ void get_root_inode(); // TODO
 // PRINTING
 void print_superblock(SuperBlock_t* block);
 void print_partition_entry(PartitionTableEntry_t* block);
+
+void print_perms(uint16_t mode);
+void print_dir(Inode_t inode, DirEntry_t* dir_entry);
+void print_file(Inode_t inode);
+
+extern Inode_t* inode_list;
+extern int cur_inode_ind;
 
 #endif /* min_common.h */

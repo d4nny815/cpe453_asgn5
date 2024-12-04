@@ -1,11 +1,17 @@
 #include "min_common.h"
 
-
+Inode_t* inode_list;
+int cur_inode_ind;
 
 void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
     args->partnum = -1;
     args->subnum = -1;
-
+    
+    // min args len
+    if (argc < MIN_MINLS_ARGS) {
+        exit(EXIT_FAILURE);
+    }
+ 
     // minls [ -v ] [ -p part [ -s subpart ] ] imagefile [ path ]
     // minget [ -v ] [ -p part [ -s subpart ] ] imagefile srcpath [ dstpath ]
 
@@ -198,4 +204,38 @@ void print_superblock(SuperBlock_t* block) {
         block->blocksize,
         block->subversion
     );
+}
+
+void print_perms(uint16_t mode) {
+    // Print permissions
+    printf((mode & DIRECTORY) ? "d" : "-");
+    printf((mode & OWNER_READ) ? "r" : "-");
+    printf((mode & OWNER_WRITE) ? "w" : "-");
+    printf((mode & OWNER_EXEC) ? "x" : "-");
+    printf((mode & GROUP_READ) ? "r" : "-");
+    printf((mode & GROUP_WRITE) ? "w" : "-");
+    printf((mode & GROUP_EXEC) ? "x" : "-");
+    printf((mode & OTHER_READ) ? "r" : "-");
+    printf((mode & OTHER_WRITE) ? "w" : "-");
+    printf((mode & OTHER_EXEC) ? "x" : "-");
+}
+
+void print_dir(Inode_t inode, DirEntry_t* dir_entry) {
+    for(int i = 0; i < inode.size / sizeof(DirEntry_t); i++) {
+        if (dir_entry->inode != 0) { // TODO: invalid inode
+            print_perms(inode_list[dir_entry->inode - 1].mode);
+            printf("%10d %s\n", inode_list[dir_entry->inode - 1].size, dir_entry->name);
+        }
+
+        dir_entry++;
+    }
+
+    return;
+}
+
+
+void print_file(Inode_t inode) {
+    // TODO
+
+    return;
 }
