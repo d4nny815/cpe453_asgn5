@@ -17,14 +17,6 @@ int main(int argc, char** argv) {
     }
 
     size_t bytes = fread(block, 1, BLOCK_SIZE, fs);
-    printf("read %zu bytes\n", bytes);
-    // for (int i = 0; i < (bytes / 32); i++) {
-        // for (int j = 0; j < 32; j++) {
-            // int ind = i * 32 + j;
-            // printf("%02x ", block[ind]);
-        // }
-        // printf("\n");
-    // }
 
     PartitionTableEntry_t* p_part = (PartitionTableEntry_t*)(block + PART_TBL_OFFSET); 
     printf("%p\n", p_part);

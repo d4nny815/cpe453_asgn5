@@ -14,6 +14,19 @@
 #define INODE_SIZE      (64)
 #define DIR_ENTRY_SIZE  (64)
 
+#define FILE_TYPE_MASK  (0xF000)
+#define REGULAR_FILE    (0x8000)
+#define DIRECTORY       (0x4000)
+#define OWNER_READ      (0x100)
+#define OWNER_WRITE     (0x80)
+#define OWNER_EXEC      (0x40)
+#define GROUP_READ      (0x20)
+#define GROUP_WRITE     (0x10)
+#define GROUP_EXEC      (8)
+#define OTHER_READ      (4)
+#define OTHER_WRITE     (2)
+#define OTHER_EXEC      (1)
+
 typedef struct PartitionTableEntry_t {
     uint8_t bootind;        //  Boot magic number (0x80 if bootable)
     uint8_t start_head;     //   Start of partition in CHS
@@ -26,6 +39,12 @@ typedef struct PartitionTableEntry_t {
     uint32_t lFirst;        //  First sector (LBA addressing)
     uint32_t size;          //  size of partition (in sectors)
 } PartitionTableEntry_t;
+
+#define MAX_NAME_SIZE   (60)
+typedef struct DirEntry_t {
+    uint32_t inode;
+    char name[MAX_NAME_SIZE];
+} DirEntry_t;
 
 typedef struct SuperBlock_t { 
     /* Minix Version 3 Superblock
