@@ -1,49 +1,26 @@
 #include "min_common.h"
 
-// int parse_args();
-// void read_fs();
-// void read_block();
-
 int main(int argc, char** argv) {
-    SuperBlock_t super_block;
     MinArgs_t args;
+    SuperBlock_t super_block;
+    PartitionTableEntry_t pt_entry;
+    Inode_t root_inode;
+    size_t bytes;
+    
     // parse args
     parse_args(argc, argv, true, &args);
 
-
-    if (args.partnum < 0) {
-        // go to superblock
-    }
-    else {
-        if (!isvalid_partition_table(args.image_file)) {
-            perror("Invalid partition table");
-            exit(EXIT_FAILURE);
-        }
-        get_superblock(&args, &super_block);
+    get_superblock(&args, &super_block, &pt_entry);
+    if(!isvalid_minix_fs(&super_block)) {
+        perror("MINIX magic number not found");
+        exit(EXIT_FAILURE);
     }
 
-    /**
-     * parse args
-     * open file
-     * 
-     * if -p > 0
-     *   if valid part table
-     *     get part entry
-     *     get superblock
-     *   else
-     *     error
-     * else
-     *   get superblock
-     * 
-     * get root inode from superblock
-     * 
-     * 
-     */
+    size_t root_inode_addr = (pt_entry.lFirst * SECTOR_SIZE) +
+        (2 + super_block.i_blocks + super_block.z_blocks) * super_block.blocksize;
+    
+    fseek(args.image_file, root_inode_addr, SEEK_SET);
+    bytes = fread(&root_inode, sizeof(Inode_t), 1, args.image_file);
 
     return 0;
 }
-
-// void read_fs() {
-// 
-    // return;
-// }

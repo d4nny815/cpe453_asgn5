@@ -33,7 +33,7 @@
 #define OTHER_READ      (4)
 #define OTHER_WRITE     (2)
 #define OTHER_EXEC      (1)
-typedef struct MinArgs_t {
+typedef struct __attribute__ ((__packed__)) MinArgs_t {
     bool verbose;
     int partnum;
     int subnum;
@@ -43,7 +43,7 @@ typedef struct MinArgs_t {
     char dst_path[PATH_MAX];
 } MinArgs_t;
 
-typedef struct PartitionTableEntry_t {
+typedef struct __attribute__ ((__packed__)) PartitionTableEntry_t {
     uint8_t bootind;        //  Boot magic number (0x80 if bootable)
     uint8_t start_head;     //   Start of partition in CHS
     uint8_t start_sec;     
@@ -57,12 +57,12 @@ typedef struct PartitionTableEntry_t {
 } PartitionTableEntry_t;
 
 #define MAX_NAME_SIZE   (60)
-typedef struct DirEntry_t {
+typedef struct __attribute__ ((__packed__)) DirEntry_t {
     uint32_t inode;
     char name[MAX_NAME_SIZE];
 } DirEntry_t;
 
-typedef struct SuperBlock_t { 
+typedef struct __attribute__ ((__packed__)) SuperBlock_t { 
     /* Minix Version 3 Superblock
     * this structure found in fs/super.h
     * in minix 3.1.1
@@ -84,7 +84,7 @@ typedef struct SuperBlock_t {
 } SuperBlock_t;
 
 #define DIRECT_ZONES    (7)
-typedef struct Inode_t {
+typedef struct __attribute__ ((__packed__)) Inode_t {
     uint16_t mode; /* mode */
     uint16_t links; /* number or links */
     uint16_t uid;
@@ -100,10 +100,9 @@ typedef struct Inode_t {
 } Inode_t;
 
 void parse_args(int argc, char** argv, bool minls, MinArgs_t* args);
-bool isvalid_minix_fs(FILE* file);
+bool isvalid_minix_fs(SuperBlock_t* sup_block);
 bool isvalid_partition_table(uint8_t* boot_block);
-void get_superblock(MinArgs_t* args, SuperBlock_t* sup_block);
-
+void get_superblock(MinArgs_t* args, SuperBlock_t* sup_block, PartitionTableEntry_t* entry);
 void get_root_inode(); // TODO
 
 #endif /* min_common.h */

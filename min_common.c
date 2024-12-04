@@ -43,7 +43,10 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
         }
     }
 
-    //TODO: SUBNUM PARTNUM CHECK
+    if (args->partnum < 0 && args->subnum >= 0) {
+        perror("cannot have subpartition without partition");
+        exit(EXIT_FAILURE);
+    }
 
     // image_file
     if (optind < argc) {
@@ -75,15 +78,8 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
 
 // 1 if valid, zero if not
 // FIXME
-bool isvalid_minix_fs(FILE* file) {
-    // uint8_t block[BLOCK_SIZE];
-    // fseek(file, 0, SEEK_SET);
-    // size_t bytes = fread(block, 1, BLOCK_SIZE, file);
-
-    // SuperBlock_t* super = (SuperBlock_t*) (block + 1024);
-
-    // return super->magic == MINIX_MAGIC_NUM;
-    return false;
+bool isvalid_minix_fs(SuperBlock_t* sup_block) {
+    return sup_block->magic == MINIX_MAGIC_NUM;
 }
 
 //
@@ -92,10 +88,9 @@ bool isvalid_partition_table(uint8_t* boot_block) {
 }
 
 
-void get_superblock(MinArgs_t* args, SuperBlock_t* sup_block) {
+void get_superblock(MinArgs_t* args, SuperBlock_t* sup_block, PartitionTableEntry_t* entry) {
     uint8_t block[BOOT_BLOCK_SIZE];
     size_t bytes;
-    PartitionTableEntry_t* entry;
 
     if (args->partnum < 0) {
         fseek(args->image_file, SB_OFFSET, SEEK_SET);
