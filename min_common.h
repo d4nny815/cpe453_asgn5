@@ -4,8 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <linux/limits.h>
+#include <string.h>
 
-#define BLOCK_SIZE      (1024)
+#define BOOT_BLOCK_SIZE (512)
+#define SB_OFFSET       (1024)
 #define VALID_BYTE510   (0x55)
 #define VALID_BYTE511   (0xAA)
 #define PART_TBL_OFFSET (0x1BE)
@@ -13,6 +19,7 @@
 #define MINIX_PART_TYPE (0x81)
 #define INODE_SIZE      (64)
 #define DIR_ENTRY_SIZE  (64)
+#define SECTOR_SIZE     (512)
 
 #define FILE_TYPE_MASK  (0xF000)
 #define REGULAR_FILE    (0x8000)
@@ -26,6 +33,15 @@
 #define OTHER_READ      (4)
 #define OTHER_WRITE     (2)
 #define OTHER_EXEC      (1)
+typedef struct MinArgs_t {
+    bool verbose;
+    int partnum;
+    int subnum;
+    FILE* image_file;
+    char path[PATH_MAX];
+    char src_path[PATH_MAX];
+    char dst_path[PATH_MAX];
+} MinArgs_t;
 
 typedef struct PartitionTableEntry_t {
     uint8_t bootind;        //  Boot magic number (0x80 if bootable)
@@ -83,9 +99,11 @@ typedef struct Inode_t {
     uint32_t unused;
 } Inode_t;
 
+void parse_args(int argc, char** argv, bool minls, MinArgs_t* args);
+bool isvalid_minix_fs(FILE* file);
+bool isvalid_partition_table(uint8_t* boot_block);
+void get_superblock(MinArgs_t* args, SuperBlock_t* sup_block);
 
-int validate_partion_table(const FILE* file);
-PartitionTableEntry_t get_partion_entry(const FILE* file, int partnum, int subnum);
-
+void get_root_inode(); // TODO
 
 #endif /* min_common.h */

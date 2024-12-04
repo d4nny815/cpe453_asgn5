@@ -5,17 +5,40 @@
 // void read_block();
 
 int main(int argc, char** argv) {
-    // read FS
-    FILE* fp = fopen("HardDisk", "r");
-    if (!fp) {
-        perror("file doesnt exist");
-        exit(EXIT_FAILURE);
+    SuperBlock_t super_block;
+    MinArgs_t args;
+    // parse args
+    parse_args(argc, argv, true, &args);
+
+
+    if (args.partnum < 0) {
+        // go to superblock
+    }
+    else {
+        if (!isvalid_partition_table(args.image_file)) {
+            perror("Invalid partition table");
+            exit(EXIT_FAILURE);
+        }
+        get_superblock(&args, &super_block);
     }
 
-    validate_partion_table(fp);
-    PartitionTableEntry_t entry = get_partion_entry(fp, 0, 0);
-
-    printf("%x %x", entry.bootind, entry.type);
+    /**
+     * parse args
+     * open file
+     * 
+     * if -p > 0
+     *   if valid part table
+     *     get part entry
+     *     get superblock
+     *   else
+     *     error
+     * else
+     *   get superblock
+     * 
+     * get root inode from superblock
+     * 
+     * 
+     */
 
     return 0;
 }
