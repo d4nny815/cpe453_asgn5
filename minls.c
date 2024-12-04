@@ -1,8 +1,5 @@
 #include "min_common.h"
 
-void print_file();
-void print_dir();
-
 int main(int argc, char** argv) {
     MinArgs_t args;
     SuperBlock_t super_block;
@@ -13,11 +10,11 @@ int main(int argc, char** argv) {
     // parse args
     parse_args(argc, argv, true, &args);
 
-    get_superblock(&args, &super_block, &pt_entry);
-    if(!isvalid_minix_fs(&super_block)) {
-        perror("MINIX magic number not found");
-        exit(EXIT_FAILURE);
-    }
+    get_partition_entry(&args, &pt_entry);
+    get_superblock(&args, &pt_entry, &super_block);
+
+    print_partition_entry(&pt_entry);
+    print_superblock(&super_block);
 
     size_t root_inode_addr = (pt_entry.lFirst * SECTOR_SIZE) +
         (2 + super_block.i_blocks + super_block.z_blocks) * super_block.blocksize;
@@ -25,8 +22,7 @@ int main(int argc, char** argv) {
     fseek(args.image_file, root_inode_addr, SEEK_SET);
     bytes = fread(&root_inode, sizeof(Inode_t), 1, args.image_file);
 
-    print_file(root_inode);
-
+    print_perms(root_inode.mode);
 
     return 0;
 }
@@ -47,12 +43,5 @@ void print_perms(uint16_t mode) {
 }
 
 void print_dir() {
-
-}
-
-void print_file(Inode_t inode) {
-    printf("%o\n", inode.mode);
-    print_perms(inode.mode);
-    printf("%s");
 
 }

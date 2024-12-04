@@ -10,11 +10,11 @@
 #include <linux/limits.h>
 #include <string.h>
 
+#define PART_TBL_OFFSET (0x1BE)
 #define BOOT_BLOCK_SIZE (512)
 #define SB_OFFSET       (1024)
 #define VALID_BYTE510   (0x55)
 #define VALID_BYTE511   (0xAA)
-#define PART_TBL_OFFSET (0x1BE)
 #define MINIX_MAGIC_NUM (0x4D5A)
 #define MINIX_PART_TYPE (0x81)
 #define INODE_SIZE      (64)
@@ -33,6 +33,7 @@
 #define OTHER_READ      (4)
 #define OTHER_WRITE     (2)
 #define OTHER_EXEC      (1)
+
 typedef struct __attribute__ ((__packed__)) MinArgs_t {
     bool verbose;
     int partnum;
@@ -100,9 +101,18 @@ typedef struct __attribute__ ((__packed__)) Inode_t {
 } Inode_t;
 
 void parse_args(int argc, char** argv, bool minls, MinArgs_t* args);
-bool isvalid_minix_fs(SuperBlock_t* sup_block);
+
+void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry);
 bool isvalid_partition_table(uint8_t* boot_block);
-void get_superblock(MinArgs_t* args, SuperBlock_t* sup_block, PartitionTableEntry_t* entry);
+
+void get_superblock(MinArgs_t* args, PartitionTableEntry_t* entry, SuperBlock_t* sup_block);
+bool isvalid_minix_fs(SuperBlock_t* sup_block);
+
 void get_root_inode(); // TODO
+
+
+// PRINTING
+void print_superblock(SuperBlock_t* block);
+void print_partition_entry(PartitionTableEntry_t* block);
 
 #endif /* min_common.h */
