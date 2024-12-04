@@ -1,6 +1,5 @@
 *.o
 minls
 minget
-HardDisk
 TestImage
 .vscode/
