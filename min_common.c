@@ -106,7 +106,7 @@ void get_superblock(MinArgs_t* args, SuperBlock_t* sup_block, PartitionTableEntr
         exit(EXIT_FAILURE);
     }
 
-    entry = (PartitionTableEntry_t*)(block + PART_TBL_OFFSET) + args->partnum;
+    entry = ((PartitionTableEntry_t*)(block + PART_TBL_OFFSET)) + args->partnum;
     if (args->subnum < 0) {
         if (entry->type != MINIX_PART_TYPE) {
             perror("not a minix partition type");
@@ -125,7 +125,7 @@ void get_superblock(MinArgs_t* args, SuperBlock_t* sup_block, PartitionTableEntr
         exit(EXIT_FAILURE);
     }
 
-    entry = (PartitionTableEntry_t*)(block + PART_TBL_OFFSET) + args->subnum;
+    entry = ((PartitionTableEntry_t*)(block + PART_TBL_OFFSET)) + args->subnum;
     if (entry->type != MINIX_PART_TYPE) {
         perror("not a minix partition type");
         exit(EXIT_FAILURE);
