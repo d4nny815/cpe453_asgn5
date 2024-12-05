@@ -9,6 +9,7 @@
 #include <getopt.h>
 #include <linux/limits.h>
 #include <string.h>
+#include <time.h>
 
 #define MIN_MINLS_ARGS  (2)
 
@@ -123,8 +124,8 @@ uint32_t get_inode(char* target, DirEntry_t* zone, uint32_t zone_size);
 // PRINTING
 void print_superblock(SuperBlock_t* block);
 void print_partition_entry(PartitionTableEntry_t* block);
+void print_inode(Inode_t* inode);
 
-void print_perms(uint16_t mode);
 void print_dir(Inode_t inode, DirEntry_t* dir_entry);
 void print_file(Inode_t inode);
 

@@ -25,8 +25,6 @@ int main(int argc, char** argv) {
     get_partition_entry(&args, &pt_entry);
     get_superblock(&args, &pt_entry, &super_block);
 
-    print_partition_entry(&pt_entry);
-    print_superblock(&super_block);
     // get the super block asked for
     if(!isvalid_minix_fs(&super_block)) {
         perror("MINIX magic number not found");
@@ -87,12 +85,23 @@ int main(int argc, char** argv) {
     }
 
     Inode_t file_inode = inode_list[cur_inode_ind - 1];
+
+    if (args.verbose) {
+        printf("\n");
+        print_superblock(&super_block);
+        printf("\n");
+        print_inode(&file_inode);
+        printf("\n");
+    }
+
     if (file_inode.mode & DIRECTORY) {
         print_dir(file_inode, dir_entries);
     } 
     else {
         print_file(file_inode);
     }
+
+    
 
     // print_file(cur_inode_ind);
     // print_dir(cur_inode_ind, dir)
