@@ -136,7 +136,8 @@ void print_dir(MinArgs_t* args, Inode_t* dir_inode,
                 size_t zone_size, size_t block_size);
 void print_file(Inode_t* inode, const char* path);
 void print_file_contents(Inode_t* inode, FILE* fp, 
-    size_t zone_size, intptr_t partition_addr);
+    size_t zone_size, intptr_t partition_addr, size_t block_size);
+
 
 
 void print_usage(bool minls);

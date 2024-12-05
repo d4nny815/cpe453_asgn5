@@ -557,11 +557,15 @@ void print_file(Inode_t* inode, const char* path) {
 }
 
 void print_file_contents(Inode_t* inode, FILE* fp, 
-        size_t zone_size, intptr_t partition_addr) {
+        size_t zone_size, intptr_t partition_addr, size_t block_size) {
+    
     uint8_t* zone_buffer = (uint8_t*)malloc(zone_size);
     uint32_t zone_array[INDIRECT_ZONES];
-
     DirEntry_t* cur_dir_entry = NULL;
+
+    #define IDK     (1 << 12)
+    char buf[IDK];
+    size_t buf_ind = 0;
 
     uint32_t num_bytes_left = inode->size;
 
@@ -573,7 +577,12 @@ void print_file_contents(Inode_t* inode, FILE* fp,
         if (inode->zone[i] == 0) {
             num_bytes_left -= bytes_to_read;
             for (int i = 0; i < bytes_to_read; i++) {
-                printf("0 ");
+                buf[buf_ind++] = '0';
+                if (buf_ind == IDK - 1) {
+                    buf[IDK - 1] = '\0';
+                    printf("%s", buf);
+                    buf_ind = 0;
+                }
             }
             continue;
         }
@@ -584,11 +593,67 @@ void print_file_contents(Inode_t* inode, FILE* fp,
         fread(zone_buffer, sizeof(uint8_t), bytes_to_read, fp);
         
         while (num_bytes_left) {
-            printf("%c", *zone_buffer);
+            buf[buf_ind++] = *zone_buffer;
+            if (buf_ind == IDK - 2) {
+                buf[IDK - 1] = '\0';
+                printf("%s", buf);
+                buf_ind = 0;
+            }
             zone_buffer++;
             num_bytes_left--;
         }
 
+    }
+
+    // indirect zones
+    if (num_bytes_left > 0) {
+        if (inode->indirect == 0) {
+            uint32_t num_holes = (INDIRECT_ZONES * block_size);
+            uint32_t bytes_to_read = (num_bytes_left < num_holes) ? 
+                num_bytes_left : num_holes;
+            num_bytes_left -= bytes_to_read;
+        }
+        else {
+            intptr_t indirect_zone_array_addr = partition_addr + 
+                (inode->indirect * zone_size);
+            fseek(fp, indirect_zone_array_addr, SEEK_SET);
+            fread(
+                zone_array, 
+                sizeof(uint32_t), 
+                INDIRECT_ZONES, 
+                fp
+            );
+
+            for (int i = 0; i < INDIRECT_ZONES && num_bytes_left > 0; i++) {
+                uint32_t bytes_to_read = (num_bytes_left < block_size) ? 
+                    num_bytes_left : block_size;
+                
+                if (zone_array[i] == 0) {
+                    num_bytes_left -= bytes_to_read;
+                    for (int i = 0; i < bytes_to_read; i++) {
+                        printf("0 ");
+                    }
+                    continue;
+                }
+
+                intptr_t seek_addr = partition_addr + 
+                    (zone_array[i] * zone_size);
+                fseek(fp, seek_addr, SEEK_SET);
+                fread(
+                    zone_buffer, 
+                    sizeof(uint8_t), 
+                    bytes_to_read, 
+                    fp
+                );
+                num_bytes_left -= bytes_to_read;
+
+                while (num_bytes_left) {
+                    printf("%c", *zone_buffer);
+                    zone_buffer++;
+                    num_bytes_left--;
+                }
+            }
+        }
     }
 }
 
