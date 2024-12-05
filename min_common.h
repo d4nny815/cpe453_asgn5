@@ -131,12 +131,14 @@ void print_superblock(SuperBlock_t* block);
 void print_partition_entry(PartitionTableEntry_t* block);
 void print_inode(Inode_t* inode);
 
-void print_dir(MinArgs_t* args, Inode_t* dir_inode, intptr_t partition_addr, size_t zone_size);
+void print_dir(MinArgs_t* args, Inode_t* dir_inode, 
+    intptr_t partition_addr, size_t zone_size);
 void print_file(Inode_t* inode, const char* path);
 
 void print_usage(bool minls);
 
-uint32_t traverse(MinArgs_t* args, uint32_t starting_inode, intptr_t partition_addr, size_t zone_size);
+uint32_t traverse(MinArgs_t* args, uint32_t starting_inode, 
+    intptr_t partition_addr, size_t zone_size);
 
 extern Inode_t* inode_list;
 

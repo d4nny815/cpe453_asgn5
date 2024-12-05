@@ -49,7 +49,8 @@ int main(int argc, char** argv) {
     bytes = fread(inode_list, sizeof(Inode_t), 
                 super_block.ninodes, args.image_file);
 
-    uint32_t found_inode_num = traverse(&args, ROOT_INODE, partition_addr, zone_size);
+    uint32_t found_inode_num = traverse(&args, 
+                                        ROOT_INODE, partition_addr, zone_size);
     Inode_t* found_inode = inode_list + (found_inode_num-1);        
 
     // Inode_t file_inode = inode_list[cur_inode_ind];

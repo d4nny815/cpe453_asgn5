@@ -175,7 +175,8 @@ uint32_t get_inode(char* target, DirEntry_t* zone, uint32_t zone_size) {
     return 0;
 }
 
-uint32_t traverse(MinArgs_t* args, uint32_t starting_inode, intptr_t partition_addr, size_t zone_size) {
+uint32_t traverse(MinArgs_t* args, uint32_t starting_inode, 
+                intptr_t partition_addr, size_t zone_size) {
     char* path_copy = strdup(args->path);
     char* token = strtok(path_copy, "/");
 
@@ -202,7 +203,8 @@ uint32_t traverse(MinArgs_t* args, uint32_t starting_inode, intptr_t partition_a
             intptr_t seek_addr = partition_addr + 
                 (inode_list[cur_inode_ind].zone[i] * zone_size);
             fseek(args->image_file, seek_addr, SEEK_SET);
-            fread(zone_buffer, sizeof(uint8_t), bytes_to_read, args->image_file);
+            fread(zone_buffer, sizeof(uint8_t), 
+                    bytes_to_read, args->image_file);
             num_bytes_left -= bytes_to_read;
 
             uint32_t dirs_per_zone = bytes_to_read / sizeof(DirEntry_t);
@@ -369,7 +371,8 @@ void print_inode(Inode_t* inode) {
 }
 
 
-void print_dir(MinArgs_t* args, Inode_t* dir_inode, intptr_t partition_addr, size_t zone_size) {
+void print_dir(MinArgs_t* args, Inode_t* dir_inode, 
+                intptr_t partition_addr, size_t zone_size) {
     char perms[11];
     uint8_t* zone_buffer = (uint8_t*)malloc(zone_size);
     DirEntry_t* cur_dir_entry = NULL;
