@@ -112,6 +112,8 @@ typedef struct __attribute__ ((__packed__)) Inode_t {
     uint32_t unused;
 } Inode_t;
 
+
+
 void parse_args(int argc, char** argv, bool minls, MinArgs_t* args);
 
 void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry);
@@ -121,28 +123,14 @@ void get_superblock(MinArgs_t* args,
                     PartitionTableEntry_t* entry, SuperBlock_t* sup_block);
 bool isvalid_minix_fs(SuperBlock_t* sup_block);
 
-uint32_t get_inode(char* target, DirEntry_t* zone, uint32_t zone_size);
-
-
-
 // PRINTING
 void decode_permissions(uint16_t mode, char* buf);
-
 void print_superblock(SuperBlock_t* block);
 void print_partition_entry(PartitionTableEntry_t* block);
 void print_inode(Inode_t* inode);
-
-void print_dir(MinArgs_t* args, Inode_t* dir_inode, 
-                intptr_t partition_addr, 
-                size_t zone_size, size_t block_size);
-void print_file(Inode_t* inode, const char* path);
-void print_file_contents(Inode_t* inode, FILE* disk_fp, 
-    size_t zone_size, intptr_t partition_addr, size_t block_size,
-    FILE* dest_fp);
-
-
-
 void print_usage(bool minls);
+
+
 uint32_t traverse(FILE* fp, char* path, uint32_t starting_inode, 
                 intptr_t partition_addr, 
                 size_t zone_size, size_t block_size);
