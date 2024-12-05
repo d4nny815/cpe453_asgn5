@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
         print_dir(file_inode, dir_entries);
     } 
     else {
-        print_file(file_inode);
+        print_file(file_inode, args.path);
     }
 
     

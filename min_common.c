@@ -307,9 +307,11 @@ void print_dir(Inode_t inode, DirEntry_t* dir_entry) {
 }
 
 
-void print_file(Inode_t inode) {
+void print_file(Inode_t inode, const char* path) {
     // TODO
-
+    char* perms = decode_permissions(inode.mode);
+    printf("%s %9d %s\n", perms, inode.size, path);
+    free(perms);
     return;
 }
 

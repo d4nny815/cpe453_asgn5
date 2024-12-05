@@ -128,7 +128,8 @@ void print_partition_entry(PartitionTableEntry_t* block);
 void print_inode(Inode_t* inode);
 
 void print_dir(Inode_t inode, DirEntry_t* dir_entry);
-void print_file(Inode_t inode);
+void print_file(Inode_t inode, const char* path);
+
 
 extern Inode_t* inode_list;
 extern size_t cur_inode_ind;
