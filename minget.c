@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     } 
     print_file_contents(found_inode, args.image_file, 
-        zone_size, partition_addr, super_block.blocksize);
+        zone_size, partition_addr, super_block.blocksize, args.dst_file);
 
 
     // walk the path
