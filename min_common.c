@@ -112,7 +112,8 @@ void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry) {
         exit(EXIT_FAILURE);
     }
 
-    temp_pt_entry = ((PartitionTableEntry_t*)(block + PART_TBL_OFFSET)) + args->partnum;
+    temp_pt_entry = ((PartitionTableEntry_t*)
+                    (block + PART_TBL_OFFSET)) + args->partnum;
     if (args->subnum < 0) {
         if (temp_pt_entry->type != MINIX_PART_TYPE) {
             perror("not a minix partition type");
@@ -130,7 +131,8 @@ void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry) {
         exit(EXIT_FAILURE);
     }
 
-    temp_pt_entry = ((PartitionTableEntry_t*)(block + PART_TBL_OFFSET)) + args->subnum;
+    temp_pt_entry = ((PartitionTableEntry_t*)
+                    (block + PART_TBL_OFFSET)) + args->subnum;
     if (temp_pt_entry->type != MINIX_PART_TYPE) {
         perror("not a minix partition type");
         exit(EXIT_FAILURE);
@@ -140,7 +142,8 @@ void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry) {
     return;
 }
 
-void get_superblock(MinArgs_t* args, PartitionTableEntry_t* entry, SuperBlock_t* sup_block) {
+void get_superblock(MinArgs_t* args, PartitionTableEntry_t* entry, 
+                    SuperBlock_t* sup_block) {
     size_t bytes;
 
     fseek(args->image_file, 
@@ -249,7 +252,8 @@ void print_inode(Inode_t* inode) {
     char* permissions = decode_permissions(inode->mode);
 
     fprintf(stderr, "File inode:\n");
-    fprintf(stderr, "  uint16_t mode            0x%04x (%-10s)\n", inode->mode, permissions);
+    fprintf(stderr, "  uint16_t mode            0x%04x (%-10s)\n", 
+                    inode->mode, permissions);
     fprintf(stderr, "  uint16_t links       %10u\n", inode->links);
     fprintf(stderr, "  uint16_t uid         %10u\n", inode->uid);
     fprintf(stderr, "  uint16_t gid         %10u\n", inode->gid);
@@ -261,15 +265,18 @@ void print_inode(Inode_t* inode) {
 
     // Print access time
     timeinfo = localtime((const time_t*)&inode->atime);
-    fprintf(stderr, "  uint32_t atime       %10d --- %s\n", inode->atime, asctime(timeinfo));
+    fprintf(stderr, "  uint32_t atime       %10d --- %s\n", 
+                    inode->atime, asctime(timeinfo));
 
     // Print modification time
     timeinfo = localtime((const time_t*)&inode->mtime);
-    fprintf(stderr, "  uint32_t mtime       %10d --- %s\n", inode->mtime, asctime(timeinfo));
+    fprintf(stderr, "  uint32_t mtime       %10d --- %s\n", 
+                    inode->mtime, asctime(timeinfo));
 
     // Print creation time
     timeinfo = localtime((const time_t*)&inode->ctime);
-    fprintf(stderr, "  uint32_t ctime       %10d --- %s\n", inode->ctime, asctime(timeinfo));
+    fprintf(stderr, "  uint32_t ctime       %10d --- %s\n", 
+                    inode->ctime, asctime(timeinfo));
 
     // Print direct zones
     fprintf(stderr, "  Direct zones:\n");
@@ -285,9 +292,11 @@ void print_inode(Inode_t* inode) {
 
 void print_dir(Inode_t inode, DirEntry_t* dir_entry) {
     for(int i = 0; i < inode.size / sizeof(DirEntry_t); i++) {
-        if (dir_entry->inode != 0) { // TODO: invalid inode
-            char* perms = decode_permissions(inode.mode);
-            fprintf(stderr, "%s %10d %s\n", perms, inode_list[dir_entry->inode - 1].size, dir_entry->name);
+        if (dir_entry->inode != 0) {
+            char* perms = decode_permissions(
+                    inode_list[dir_entry->inode - 1].mode);
+            printf("%s %9d %s\n", 
+                perms, inode_list[dir_entry->inode - 1].size, dir_entry->name);
             free(perms);
         }
 

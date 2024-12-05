@@ -34,7 +34,8 @@ int main(int argc, char** argv) {
     // start of the "partition"
     size_t partition_addr = pt_entry.lFirst * SECTOR_SIZE;
     size_t root_inode_addr = (partition_addr) +
-        (2 + super_block.i_blocks + super_block.z_blocks) * super_block.blocksize;
+        (2 + super_block.i_blocks + super_block.z_blocks) * 
+        super_block.blocksize;
 
     // load in inode list
     inode_list = (Inode_t*) malloc(sizeof(Inode_t) * super_block.ninodes);
@@ -43,7 +44,8 @@ int main(int argc, char** argv) {
     if (err == -1) {
         exit(1);
     }
-    bytes = fread(inode_list, sizeof(Inode_t), super_block.ninodes, args.image_file);
+    bytes = fread(inode_list, sizeof(Inode_t), 
+                super_block.ninodes, args.image_file);
 
     // split the path
     size_t zone_size = super_block.blocksize << super_block.log_zone_size;
@@ -52,7 +54,8 @@ int main(int argc, char** argv) {
     char* token = strtok(path_copy, "/");
     DirEntry_t* dir_entries = (DirEntry_t*) malloc(zone_size);
 
-    size_t zone_addr = partition_addr + (zone_size * inode_list[cur_inode_ind - 1].zone[0]);
+    size_t zone_addr = partition_addr + 
+        (zone_size * inode_list[cur_inode_ind - 1].zone[0]);
     err = fseek(args.image_file, zone_addr, SEEK_SET);
     if (err == -1) {
         exit(1);
@@ -61,7 +64,8 @@ int main(int argc, char** argv) {
 
     while (token) {
         // search for inode
-        int inodes_size = inode_list[cur_inode_ind - 1].size / sizeof(DirEntry_t);
+        int inodes_size = inode_list[cur_inode_ind - 1].size 
+            / sizeof(DirEntry_t);
         cur_inode_ind = get_inode(token, dir_entries, inodes_size);
 
         if (cur_inode_ind == 0) {
@@ -71,9 +75,11 @@ int main(int argc, char** argv) {
 
         //if its a dir go deeper
         if (inode_list[cur_inode_ind - 1].mode & DIRECTORY) {
-            printf("zone: %u \n", inode_list[cur_inode_ind - 1].zone[0]);
+            // printf("zone: %u \n", inode_list[cur_inode_ind - 1].zone[0]);
             // get new dir_entries
-            zone_addr = partition_addr + (zone_size * inode_list[cur_inode_ind - 1].zone[0]);
+            
+            zone_addr = partition_addr + 
+                (zone_size * inode_list[cur_inode_ind - 1].zone[0]);
             err = fseek(args.image_file, zone_addr, SEEK_SET);
             if (err == -1) {
                 exit(1);
@@ -95,6 +101,7 @@ int main(int argc, char** argv) {
     }
 
     if (file_inode.mode & DIRECTORY) {
+        printf("%s:\n", args.path);
         print_dir(file_inode, dir_entries);
     } 
     else {

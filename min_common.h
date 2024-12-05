@@ -114,7 +114,8 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args);
 void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry);
 bool isvalid_partition_table(uint8_t* boot_block);
 
-void get_superblock(MinArgs_t* args, PartitionTableEntry_t* entry, SuperBlock_t* sup_block);
+void get_superblock(MinArgs_t* args, 
+                    PartitionTableEntry_t* entry, SuperBlock_t* sup_block);
 bool isvalid_minix_fs(SuperBlock_t* sup_block);
 
 uint32_t get_inode(char* target, DirEntry_t* zone, uint32_t zone_size);
