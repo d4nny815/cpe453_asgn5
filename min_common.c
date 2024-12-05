@@ -566,10 +566,6 @@ void print_file_contents(Inode_t* inode, FILE* disk_fp,
     uint8_t* zone_buffer = (uint8_t*)malloc(zone_size);
     uint32_t zone_array[INDIRECT_ZONES];
 
-    #define IDK     (1 << 12)
-    char buf[IDK];
-    size_t buf_ind = 0;
-
     uint32_t num_bytes_left = inode->size;
 
     // direct zones
@@ -578,14 +574,10 @@ void print_file_contents(Inode_t* inode, FILE* disk_fp,
                                 num_bytes_left : zone_size;
         
         if (inode->zone[i] == 0) {
+            memset(zone_buffer, 0, bytes_to_read);
+            fwrite(zone_buffer, sizeof(char), bytes_to_read, dest_fp);
+
             num_bytes_left -= bytes_to_read;
-            for (int i = 0; i < bytes_to_read; i++) {
-                buf[buf_ind++] = '0';
-                if (buf_ind == IDK - 1) {
-                    fwrite(buf, sizeof(char), IDK, dest_fp);
-                    buf_ind = 0;
-                }
-            }
             continue;
         }
 
@@ -593,17 +585,9 @@ void print_file_contents(Inode_t* inode, FILE* disk_fp,
             (inode->zone[i] * zone_size);
         fseek(disk_fp, seek_addr, SEEK_SET);
         fread(zone_buffer, sizeof(uint8_t), bytes_to_read, disk_fp);
-        
-        while (num_bytes_left) {
-            buf[buf_ind++] = *zone_buffer;
-            if (buf_ind == IDK - 1) {
-                fwrite(buf, sizeof(char), IDK, dest_fp);
-                buf_ind = 0;
-            }
-            zone_buffer++;
-            num_bytes_left--;
-        }
 
+        fwrite(zone_buffer, sizeof(char), bytes_to_read, dest_fp);
+        num_bytes_left -= bytes_to_read;
     }
 
     // indirect zones
@@ -612,6 +596,9 @@ void print_file_contents(Inode_t* inode, FILE* disk_fp,
             uint32_t num_holes = (INDIRECT_ZONES * block_size);
             uint32_t bytes_to_read = (num_bytes_left < num_holes) ? 
                 num_bytes_left : num_holes;
+            
+            memset(zone_buffer, 0, bytes_to_read);
+            fwrite(zone_buffer, sizeof(char), bytes_to_read, dest_fp);
             num_bytes_left -= bytes_to_read;
         }
         else {
@@ -630,10 +617,10 @@ void print_file_contents(Inode_t* inode, FILE* disk_fp,
                     num_bytes_left : block_size;
                 
                 if (zone_array[i] == 0) {
+                    memset(zone_buffer, 0, bytes_to_read);
+                    fwrite(zone_buffer, sizeof(char), bytes_to_read, dest_fp);
+
                     num_bytes_left -= bytes_to_read;
-                    for (int i = 0; i < bytes_to_read; i++) {
-                        printf("0 ");
-                    }
                     continue;
                 }
 
@@ -646,13 +633,9 @@ void print_file_contents(Inode_t* inode, FILE* disk_fp,
                     bytes_to_read, 
                     disk_fp
                 );
+                
+                fwrite(zone_buffer, sizeof(char), bytes_to_read, dest_fp);
                 num_bytes_left -= bytes_to_read;
-
-                while (num_bytes_left) {
-                    printf("%c", *zone_buffer);
-                    zone_buffer++;
-                    num_bytes_left--;
-                }
             }
         }
     }
