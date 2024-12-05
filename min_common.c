@@ -85,7 +85,10 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
         
         // dest_path
         if (++optind < argc) {
-            strncpy(args->dst_path, argv[optind], PATH_MAX);
+            args->dst_file = fopen(argv[optind], "w");
+        }
+        else {
+            args->dst_file = stdout;
         }
     }
 
