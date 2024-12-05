@@ -31,8 +31,6 @@ int main(int argc, char** argv) {
         super_block.blocksize;
 
     size_t zone_size = super_block.blocksize << super_block.log_zone_size;
-    uint32_t zone_array[INDIRECT_ZONES];
-    uint32_t indirect_zone_array[INDIRECT_ZONES];
 
     // load in inode list
     inode_list = (Inode_t*) malloc(sizeof(Inode_t) * super_block.ninodes);
@@ -47,7 +45,8 @@ int main(int argc, char** argv) {
     );
 
     uint32_t found_inode_num = traverse(
-        &args, 
+        args.image_file,
+        args.path,
         ROOT_INODE, 
         partition_addr,
         zone_size, 

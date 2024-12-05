@@ -135,12 +135,14 @@ void print_dir(MinArgs_t* args, Inode_t* dir_inode,
                 intptr_t partition_addr, 
                 size_t zone_size, size_t block_size);
 void print_file(Inode_t* inode, const char* path);
+void print_file_contents(Inode_t* inode, FILE* fp, 
+    size_t zone_size, intptr_t partition_addr);
+
 
 void print_usage(bool minls);
-
-uint32_t traverse(MinArgs_t* args, uint32_t starting_inode, 
-    intptr_t partition_addr,
-    size_t zone_size, size_t block_size);
+uint32_t traverse(FILE* fp, char* path, uint32_t starting_inode, 
+                intptr_t partition_addr, 
+                size_t zone_size, size_t block_size);
 
 extern Inode_t* inode_list;
 

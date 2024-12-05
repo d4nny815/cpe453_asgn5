@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
     int err;
 
     // parse args and put them into a struct
-    parse_args(argc, argv, true, &args);
+    parse_args(argc, argv, false, &args);
 
     get_partition_entry(&args, &pt_entry);
     get_superblock(&args, &pt_entry, &super_block);
@@ -31,8 +31,6 @@ int main(int argc, char** argv) {
         super_block.blocksize;
 
     size_t zone_size = super_block.blocksize << super_block.log_zone_size;
-    uint32_t zone_array[INDIRECT_ZONES];
-    uint32_t indirect_zone_array[INDIRECT_ZONES];
 
     // load in inode list
     inode_list = (Inode_t*) malloc(sizeof(Inode_t) * super_block.ninodes);
@@ -47,7 +45,8 @@ int main(int argc, char** argv) {
     );
 
     uint32_t found_inode_num = traverse(
-        &args, 
+        args.image_file,
+        args.src_path, 
         ROOT_INODE, 
         partition_addr,
         zone_size, 
@@ -77,7 +76,8 @@ int main(int argc, char** argv) {
         );
     } 
     else {
-        print_file(found_inode, args.path);
+        print_file_contents(found_inode, args.image_file, 
+            zone_size, partition_addr);
     }
 
 
