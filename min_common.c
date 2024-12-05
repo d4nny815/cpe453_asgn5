@@ -1,7 +1,6 @@
 #include "min_common.h"
 
 Inode_t* inode_list;
-size_t cur_inode_ind;
 
 void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
     args->partnum = -1;
@@ -176,8 +175,58 @@ uint32_t get_inode(char* target, DirEntry_t* zone, uint32_t zone_size) {
     return 0;
 }
 
-uint32_t traverse(char* path, uint32_t starting_inode, bool is_searching) {
-    
+uint32_t traverse(MinArgs_t* args, uint32_t starting_inode, intptr_t partition_addr, size_t zone_size) {
+    char* path_copy = strdup(args->path);
+    char* token = strtok(path_copy, "/");
+
+    uint8_t* zone_buffer = (uint8_t*)malloc(zone_size);
+
+    uint32_t cur_inode_ind = starting_inode - 1;
+    DirEntry_t* cur_dir_entry = NULL;
+
+    bool token_found = false;
+    while (token) {
+        token_found = false;
+        uint32_t num_bytes_left = inode_list[cur_inode_ind].size;
+
+        // direct zones
+        for (int i = 0; i < DIRECT_ZONES && num_bytes_left > 0; i++) {
+            uint32_t bytes_to_read = (num_bytes_left < zone_size) ? 
+                                    num_bytes_left : zone_size;
+            
+            if (inode_list[cur_inode_ind].zone[i] == 0) {
+                num_bytes_left -= bytes_to_read;
+                continue;
+            }
+
+            intptr_t seek_addr = partition_addr + 
+                (inode_list[cur_inode_ind].zone[i] * zone_size);
+            fseek(args->image_file, seek_addr, SEEK_SET);
+            fread(zone_buffer, sizeof(uint8_t), bytes_to_read, args->image_file);
+            num_bytes_left -= bytes_to_read;
+
+            uint32_t dirs_per_zone = bytes_to_read / sizeof(DirEntry_t);
+            for (int j = 0; j < dirs_per_zone; j++) {
+                cur_dir_entry = (DirEntry_t*)zone_buffer + j;
+
+                if (cur_dir_entry->inode == 0) continue;
+                if (SAME_STR(cur_dir_entry->name,token)) {
+                    token_found = true;
+                    cur_inode_ind = cur_dir_entry->inode - 1;
+                    break;
+                }
+            }
+
+            if (token_found) break;
+        }
+
+        token = strtok(NULL, "/");
+    }
+
+    free(path_copy);
+    free(zone_buffer);
+
+    return token_found ? (cur_inode_ind + 1) : INVALID_INODE;
 }
 
 
@@ -264,8 +313,7 @@ void print_superblock(SuperBlock_t* block) {
     );
 }
 
-char* decode_permissions(uint16_t mode) {
-    char* buf = (char*) malloc(sizeof(char) * 11);
+void decode_permissions(uint16_t mode, char* buf) {
     buf[0] = (mode & DIRECTORY) ? 'd' : '-'; 
     buf[1] = (mode & OWNER_READ) ? 'r' : '-'; 
     buf[2] = (mode & OWNER_WRITE) ? 'w' : '-'; 
@@ -276,23 +324,21 @@ char* decode_permissions(uint16_t mode) {
     buf[7] = (mode & OTHER_READ) ? 'r' : '-'; 
     buf[8] = (mode & OTHER_WRITE) ? 'w' : '-'; 
     buf[9] = (mode & OTHER_EXEC) ? 'x' : '-'; 
-    buf[10] = '\0'; 
-    return buf;
+    buf[10] = '\0';
 }
 
 // Function to print inode details
 void print_inode(Inode_t* inode) {
-    char* permissions = decode_permissions(inode->mode);
+    char perms[11];
+    decode_permissions(inode->mode, perms);
 
     fprintf(stderr, "File inode:\n");
     fprintf(stderr, "  uint16_t mode            0x%04x (%-10s)\n", 
-                    inode->mode, permissions);
+                    inode->mode, perms);
     fprintf(stderr, "  uint16_t links       %10u\n", inode->links);
     fprintf(stderr, "  uint16_t uid         %10u\n", inode->uid);
     fprintf(stderr, "  uint16_t gid         %10u\n", inode->gid);
     fprintf(stderr, "  uint32_t size        %10u\n", inode->size);
-
-    free(permissions);
 
     struct tm* timeinfo;
 
@@ -323,27 +369,50 @@ void print_inode(Inode_t* inode) {
 }
 
 
-void print_dir(Inode_t dir_inode, DirEntry_t* dir_entry) {
-    for(int i = 0; i < dir_inode.size / sizeof(DirEntry_t); i++) {
-        if (dir_entry->inode != 0) {
-            Inode_t inode = inode_list[dir_entry->inode]; 
-            char* perms = decode_permissions(inode.mode);
-            
-            printf("%s %9d %s\n", perms, inode.size, dir_entry->name);
-            free(perms);
+void print_dir(MinArgs_t* args, Inode_t* dir_inode, intptr_t partition_addr, size_t zone_size) {
+    char perms[11];
+    uint8_t* zone_buffer = (uint8_t*)malloc(zone_size);
+    DirEntry_t* cur_dir_entry = NULL;
+
+    uint32_t num_bytes_left = dir_inode->size;
+
+    // direct zones
+    for (int i = 0; i < DIRECT_ZONES && num_bytes_left > 0; i++) {
+        uint32_t bytes_to_read = (num_bytes_left < zone_size) ? 
+                                num_bytes_left : zone_size;
+        
+        if (dir_inode->zone[i] == 0) {
+            num_bytes_left -= bytes_to_read;
+            continue;
         }
 
-        dir_entry++;
+        intptr_t seek_addr = partition_addr + 
+            (dir_inode->zone[i] * zone_size);
+        fseek(args->image_file, seek_addr, SEEK_SET);
+        fread(zone_buffer, sizeof(uint8_t), bytes_to_read, args->image_file);
+        num_bytes_left -= bytes_to_read;
+
+        uint32_t dirs_per_zone = bytes_to_read / sizeof(DirEntry_t);
+        for (int j = 0; j < dirs_per_zone; j++) {
+            cur_dir_entry = (DirEntry_t*)zone_buffer + j;
+
+            if (cur_dir_entry->inode == 0) continue;
+
+            Inode_t* inode = inode_list + (cur_dir_entry->inode - 1);
+            decode_permissions(inode->mode, perms);
+            
+            printf("%s %9d %s\n", perms, inode->size, cur_dir_entry->name);
+        }
     }
 
-    return;
+    free(zone_buffer);
 }
 
 
-void print_file(Inode_t inode, const char* path) {
-    char* perms = decode_permissions(inode.mode);
-    printf("%s %9d %s\n", perms, inode.size, path);
-    free(perms);
+void print_file(Inode_t* inode, const char* path) {
+    char perms[11];
+    decode_permissions(inode->mode, perms);
+    printf("%s %9d %s\n", perms, inode->size, path);
     return;
 }
 

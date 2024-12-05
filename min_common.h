@@ -125,19 +125,19 @@ uint32_t get_inode(char* target, DirEntry_t* zone, uint32_t zone_size);
 
 
 // PRINTING
+void decode_permissions(uint16_t mode, char* buf);
+
 void print_superblock(SuperBlock_t* block);
 void print_partition_entry(PartitionTableEntry_t* block);
 void print_inode(Inode_t* inode);
 
-void print_dir(Inode_t inode, DirEntry_t* dir_entry);
-void print_file(Inode_t inode, const char* path);
+void print_dir(MinArgs_t* args, Inode_t* dir_inode, intptr_t partition_addr, size_t zone_size);
+void print_file(Inode_t* inode, const char* path);
 
 void print_usage(bool minls);
 
-uint32_t traverse_file();
-
+uint32_t traverse(MinArgs_t* args, uint32_t starting_inode, intptr_t partition_addr, size_t zone_size);
 
 extern Inode_t* inode_list;
-extern size_t cur_inode_ind;
 
 #endif /* min_common.h */
