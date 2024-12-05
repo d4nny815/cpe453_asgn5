@@ -51,7 +51,7 @@ typedef struct __attribute__ ((__packed__)) MinArgs_t {
     FILE* image_file;
     char path[PATH_MAX];
     char src_path[PATH_MAX];
-    char dst_path[PATH_MAX];
+    FILE* dst_file;
 } MinArgs_t;
 
 typedef struct __attribute__ ((__packed__)) PartitionTableEntry_t {
