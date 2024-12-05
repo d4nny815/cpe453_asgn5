@@ -8,14 +8,18 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
     args->subnum = -1;
     
     // min args len
-    if (argc < MIN_MINLS_ARGS) {
+    if (argc < MIN_MINLS_ARGS && minls) {
+        print_usage(minls);
+        exit(EXIT_FAILURE);
+    } 
+    else if (argc < MIN_MINGET_ARGS && !minls) {
+        print_usage(minls);
         exit(EXIT_FAILURE);
     }
  
     // minls [ -v ] [ -p part [ -s subpart ] ] imagefile [ path ]
     // minget [ -v ] [ -p part [ -s subpart ] ] imagefile srcpath [ dstpath ]
 
-    //TODO: h flag?
     char opt;
     while ((opt = getopt(argc, argv, "vp:s:")) != -1) {
         switch (opt) {
@@ -43,7 +47,7 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
             }
             break;
         default:
-            // print you did this wrong
+            print_usage(minls);
             break;
         }
     }
@@ -64,9 +68,7 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
 
     if (minls) {
         // pathname
-        // ? do I put default path
-        optind++;
-        if (optind < argc) {
+        if (++optind < argc) {
             strncpy(args->path, argv[optind], PATH_MAX);
         } else {
             strncpy(args->path, DEFAULT_PATH, PATH_MAX);
@@ -74,10 +76,8 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
     }
     else {
         // src_path
-        optind++;
-        strncpy(args->src_path, argv[optind], PATH_MAX);
-        optind++;
-        if (optind < argc) {
+        strncpy(args->src_path, argv[++optind], PATH_MAX);
+        if (++optind < argc) {
             // dest_path
             strncpy(args->dst_path, argv[optind], PATH_MAX);
         }
@@ -112,8 +112,8 @@ void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry) {
         exit(EXIT_FAILURE);
     }
 
-    temp_pt_entry = ((PartitionTableEntry_t*)
-                    (block + PART_TBL_OFFSET)) + args->partnum;
+    temp_pt_entry = ((PartitionTableEntry_t*) (block + PART_TBL_OFFSET)) 
+                    + args->partnum;
     if (args->subnum < 0) {
         if (temp_pt_entry->type != MINIX_PART_TYPE) {
             perror("not a minix partition type");
@@ -131,14 +131,15 @@ void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry) {
         exit(EXIT_FAILURE);
     }
 
-    temp_pt_entry = ((PartitionTableEntry_t*)
-                    (block + PART_TBL_OFFSET)) + args->subnum;
+    temp_pt_entry = ((PartitionTableEntry_t*)(block + PART_TBL_OFFSET)) 
+                    + args->subnum;
     if (temp_pt_entry->type != MINIX_PART_TYPE) {
         perror("not a minix partition type");
         exit(EXIT_FAILURE);
     }
 
     memcpy(entry, temp_pt_entry, sizeof(PartitionTableEntry_t));
+
     return;
 }
 
@@ -146,10 +147,9 @@ void get_superblock(MinArgs_t* args, PartitionTableEntry_t* entry,
                     SuperBlock_t* sup_block) {
     size_t bytes;
 
-    fseek(args->image_file, 
-        (args->partnum >= 0) * entry->lFirst * SECTOR_SIZE + SB_OFFSET, 
-        SEEK_SET
-    );
+    size_t sup_block_addr = (args->partnum >= 0) * 
+        entry->lFirst * SECTOR_SIZE + SB_OFFSET;
+    fseek(args->image_file, sup_block_addr, SEEK_SET);
     bytes = fread(sup_block, sizeof(SuperBlock_t), 1, args->image_file);
     
     if(!isvalid_minix_fs(sup_block)) {
@@ -176,6 +176,34 @@ uint32_t get_inode(char* target, DirEntry_t* zone, uint32_t zone_size) {
     return 0;
 }
 
+
+void print_usage(bool minls) {
+    if (minls) {
+        fprintf(stderr,
+            "usage: minls [ -v ] [ -p num [ -s num ] ] imagefile [ path ]\n"
+            "Options:\n"
+            "-p part     --- select partition for filesystem \
+            (default: none)\n"
+            "-s sub      --- select subpartition for filesystem \
+            (default: none)\n"
+            "-h help     --- print usage information and exit\n"
+            "-v verbose  --- increase verbosity level\n");
+    }
+    else {
+        fprintf(stderr,
+            "usage: minget [ -v ] [ -p part [ -s subpart ] ] imagefile \
+            srcpath [ dstpath ]\n"
+            "Options:\n"
+            "-p part     --- select partition for filesystem \
+            (default: none)\n"
+            "-s sub      --- select subpartition for filesystem \
+            (default: none)\n"
+            "-h help     --- print usage information and exit\n"
+            "-v verbose  --- increase verbosity level\n");
+    }
+
+    return;
+}
 
 void print_partition_entry(PartitionTableEntry_t* block) {
     const char* print_string = "Partition Entry:\nStored Fields: \
@@ -233,17 +261,17 @@ void print_superblock(SuperBlock_t* block) {
 
 char* decode_permissions(uint16_t mode) {
     char* buf = (char*) malloc(sizeof(char) * 11);
-    buf[0] = (mode & 0x4000) ? 'd' : '-'; // Directory or file
-    buf[1] = (mode & 0x0100) ? 'r' : '-'; // Owner read
-    buf[2] = (mode & 0x0080) ? 'w' : '-'; // Owner write
-    buf[3] = (mode & 0x0040) ? 'x' : '-'; // Owner execute
-    buf[4] = (mode & 0x0020) ? 'r' : '-'; // Group read
-    buf[5] = (mode & 0x0010) ? 'w' : '-'; // Group write
-    buf[6] = (mode & 0x0008) ? 'x' : '-'; // Group execute
-    buf[7] = (mode & 0x0004) ? 'r' : '-'; // Other read
-    buf[8] = (mode & 0x0002) ? 'w' : '-'; // Other write
-    buf[9] = (mode & 0x0001) ? 'x' : '-'; // Other execute
-    buf[10] = '\0'; // Null-terminate the string
+    buf[0] = (mode & DIRECTORY) ? 'd' : '-'; 
+    buf[1] = (mode & OWNER_READ) ? 'r' : '-'; 
+    buf[2] = (mode & OWNER_WRITE) ? 'w' : '-'; 
+    buf[3] = (mode & OWNER_EXEC) ? 'x' : '-'; 
+    buf[4] = (mode & GROUP_READ) ? 'r' : '-'; 
+    buf[5] = (mode & GROUP_WRITE) ? 'w' : '-'; 
+    buf[6] = (mode & GROUP_EXEC) ? 'x' : '-'; 
+    buf[7] = (mode & OTHER_READ) ? 'r' : '-'; 
+    buf[8] = (mode & OTHER_WRITE) ? 'w' : '-'; 
+    buf[9] = (mode & OTHER_EXEC) ? 'x' : '-'; 
+    buf[10] = '\0'; 
     return buf;
 }
 
@@ -285,18 +313,18 @@ void print_inode(Inode_t* inode) {
     }
 
     // Print indirect zones
-    fprintf(stderr, "  uint32_t indirect %20u\n", inode->indirect);
-    fprintf(stderr, "  uint32_t double   %20u\n", inode->two_indirect);
+    fprintf(stderr, "  uint32_t indirect %10u\n", inode->indirect);
+    fprintf(stderr, "  uint32_t double   %10u\n", inode->two_indirect);
 }
 
 
-void print_dir(Inode_t inode, DirEntry_t* dir_entry) {
-    for(int i = 0; i < inode.size / sizeof(DirEntry_t); i++) {
+void print_dir(Inode_t dir_inode, DirEntry_t* dir_entry) {
+    for(int i = 0; i < dir_inode.size / sizeof(DirEntry_t); i++) {
         if (dir_entry->inode != 0) {
-            char* perms = decode_permissions(
-                    inode_list[dir_entry->inode - 1].mode);
-            printf("%s %9d %s\n", 
-                perms, inode_list[dir_entry->inode - 1].size, dir_entry->name);
+            Inode_t inode = inode_list[dir_entry->inode - 1]; 
+            char* perms = decode_permissions(inode.mode);
+            
+            printf("%s %9d %s\n", perms, inode.size, dir_entry->name);
             free(perms);
         }
 
@@ -308,7 +336,6 @@ void print_dir(Inode_t inode, DirEntry_t* dir_entry) {
 
 
 void print_file(Inode_t inode, const char* path) {
-    // TODO
     char* perms = decode_permissions(inode.mode);
     printf("%s %9d %s\n", perms, inode.size, path);
     free(perms);

@@ -12,6 +12,7 @@
 #include <time.h>
 
 #define MIN_MINLS_ARGS  (2)
+#define MIN_MINGET_ARGS (3)
 
 #define MIN_MINLS_ARGS  (2)
 #define PART_TBL_OFFSET (0x1BE)
@@ -129,6 +130,8 @@ void print_inode(Inode_t* inode);
 
 void print_dir(Inode_t inode, DirEntry_t* dir_entry);
 void print_file(Inode_t inode, const char* path);
+
+void print_usage(bool minls);
 
 
 extern Inode_t* inode_list;
