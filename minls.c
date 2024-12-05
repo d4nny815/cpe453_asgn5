@@ -47,18 +47,24 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
     bytes = fread(inode_list, sizeof(Inode_t), 
-                super_block.ninodes, args.image_file);
+        super_block.ninodes, 
+        args.image_file
+    );
 
-    uint32_t found_inode_num = traverse(&args, 
-                                        ROOT_INODE, partition_addr, zone_size);
+    uint32_t found_inode_num = traverse(
+        &args, 
+        ROOT_INODE, 
+        partition_addr,
+        zone_size, 
+        super_block.blocksize
+    );
+
     if (found_inode_num == INVALID_INODE) {
         perror("file not found");
         exit(EXIT_FAILURE);
     }
-    
-    Inode_t* found_inode = inode_list + (found_inode_num-1);        
 
-    // Inode_t file_inode = inode_list[cur_inode_ind];
+    Inode_t* found_inode = inode_list + (found_inode_num-1);
 
     // if (args.verbose) {
     //     printf("\n");
@@ -70,7 +76,10 @@ int main(int argc, char** argv) {
 
     if (found_inode->mode & DIRECTORY) {
         printf("%s:\n", args.path);
-        print_dir(&args, found_inode, partition_addr, zone_size);
+        print_dir(
+            &args, found_inode, partition_addr, 
+            zone_size, super_block.blocksize
+        );
     } 
     else {
         print_file(found_inode, args.path);

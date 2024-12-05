@@ -176,11 +176,13 @@ uint32_t get_inode(char* target, DirEntry_t* zone, uint32_t zone_size) {
 }
 
 uint32_t traverse(MinArgs_t* args, uint32_t starting_inode, 
-                intptr_t partition_addr, size_t zone_size) {
+                intptr_t partition_addr, 
+                size_t zone_size, size_t block_size) {
     char* path_copy = strdup(args->path);
     char* token = strtok(path_copy, "/");
 
     uint8_t* zone_buffer = (uint8_t*)malloc(zone_size);
+    uint32_t zone_array[INDIRECT_ZONES];
 
     uint32_t cur_inode_ind = starting_inode - 1;
     DirEntry_t* cur_dir_entry = NULL;
@@ -228,6 +230,67 @@ uint32_t traverse(MinArgs_t* args, uint32_t starting_inode,
             }
 
             if (token_found) break;
+        }
+
+        // indirect zones
+        if (num_bytes_left > 0 && !token_found) {
+            Inode_t* cur_inode = (inode_list + cur_inode_ind);
+
+            if (cur_inode->indirect == 0) {
+                uint32_t num_holes = (INDIRECT_ZONES * block_size);
+                uint32_t bytes_to_read = (num_bytes_left < num_holes) ? 
+                    num_bytes_left : num_holes;
+                num_bytes_left -= bytes_to_read;
+            }
+            else {
+                intptr_t indirect_zone_array_addr = partition_addr + 
+                    (cur_inode->indirect * zone_size);
+                fseek(args->image_file, indirect_zone_array_addr, SEEK_SET);
+                fread(
+                    zone_array, 
+                    sizeof(uint32_t), 
+                    INDIRECT_ZONES, 
+                    args->image_file
+                );
+
+                for(int i = 0; i < INDIRECT_ZONES && num_bytes_left > 0; i++) {
+                    uint32_t bytes_to_read = (num_bytes_left < block_size) ? 
+                        num_bytes_left : block_size;
+                    
+                    if (zone_array[i] == 0) {
+                        num_bytes_left -= bytes_to_read;
+                        continue;
+                    }
+
+                    intptr_t seek_addr = partition_addr + 
+                        (zone_array[i] * zone_size);
+                    fseek(args->image_file, seek_addr, SEEK_SET);
+                    fread(
+                        zone_buffer, 
+                        sizeof(uint8_t), 
+                        bytes_to_read, 
+                        args->image_file
+                    );
+                    num_bytes_left -= bytes_to_read;
+
+                    uint32_t dirs_per_zone = 
+                        bytes_to_read / sizeof(DirEntry_t);
+                    for (int j = 0; j < dirs_per_zone; j++) {
+                        cur_dir_entry = (DirEntry_t*)zone_buffer + j;
+
+                        if (cur_dir_entry->inode == 0) continue;
+                        if (SAME_STR(cur_dir_entry->name,token)) {
+                            token_found = true;
+                            cur_inode_ind = cur_dir_entry->inode - 1;
+                            is_dir = 
+                                (inode_list + cur_inode_ind)->mode & DIRECTORY;
+                            break;
+                        }
+                    }
+
+                    if (token_found) break;
+                }
+            }
         }
 
         token = strtok(NULL, "/");
@@ -380,9 +443,13 @@ void print_inode(Inode_t* inode) {
 
 
 void print_dir(MinArgs_t* args, Inode_t* dir_inode, 
-                intptr_t partition_addr, size_t zone_size) {
+                intptr_t partition_addr, 
+                size_t zone_size, size_t block_size) {
     char perms[11];
+    
     uint8_t* zone_buffer = (uint8_t*)malloc(zone_size);
+    uint32_t zone_array[INDIRECT_ZONES];
+
     DirEntry_t* cur_dir_entry = NULL;
 
     uint32_t num_bytes_left = dir_inode->size;
@@ -413,6 +480,61 @@ void print_dir(MinArgs_t* args, Inode_t* dir_inode,
             decode_permissions(inode->mode, perms);
             
             printf("%s %9d %s\n", perms, inode->size, cur_dir_entry->name);
+        }
+    }
+
+    // indirect zones
+    if (num_bytes_left > 0) {
+        if (dir_inode->indirect == 0) {
+            uint32_t num_holes = (INDIRECT_ZONES * block_size);
+            uint32_t bytes_to_read = (num_bytes_left < num_holes) ? 
+                num_bytes_left : num_holes;
+            num_bytes_left -= bytes_to_read;
+        }
+        else {
+            intptr_t indirect_zone_array_addr = partition_addr + 
+                (dir_inode->indirect * zone_size);
+            fseek(args->image_file, indirect_zone_array_addr, SEEK_SET);
+            fread(
+                zone_array, 
+                sizeof(uint32_t), 
+                INDIRECT_ZONES, 
+                args->image_file
+            );
+
+            for (int i = 0; i < INDIRECT_ZONES && num_bytes_left > 0; i++) {
+                uint32_t bytes_to_read = (num_bytes_left < block_size) ? 
+                    num_bytes_left : block_size;
+                
+                if (zone_array[i] == 0) {
+                    num_bytes_left -= bytes_to_read;
+                    continue;
+                }
+
+                intptr_t seek_addr = partition_addr + 
+                    (zone_array[i] * zone_size);
+                fseek(args->image_file, seek_addr, SEEK_SET);
+                fread(
+                    zone_buffer, 
+                    sizeof(uint8_t), 
+                    bytes_to_read, 
+                    args->image_file
+                );
+                num_bytes_left -= bytes_to_read;
+
+                uint32_t dirs_per_zone = bytes_to_read / sizeof(DirEntry_t);
+                for (int j = 0; j < dirs_per_zone; j++) {
+                    cur_dir_entry = (DirEntry_t*)zone_buffer + j;
+
+                    if (cur_dir_entry->inode == 0) continue;
+
+                    Inode_t* inode = inode_list + (cur_dir_entry->inode - 1);
+                    decode_permissions(inode->mode, perms);
+                    
+                    printf("%s %9d %s\n", 
+                        perms, inode->size, cur_dir_entry->name);
+                }
+            }
         }
     }
 
