@@ -1,10 +1,5 @@
 #include "min_common.h"
 
-char** split_path(const char* path);
-void free_split_path(char** path_components);
-
-
-
 Inode_t* inode_list;
 size_t cur_inode_ind;
 
@@ -66,13 +61,13 @@ int main(int argc, char** argv) {
 
     Inode_t* found_inode = inode_list + (found_inode_num-1);
 
-    // if (args.verbose) {
-    //     printf("\n");
-    //     print_superblock(&super_block);
-    //     printf("\n");
-    //     print_inode(&file_inode);
-    //     printf("\n");
-    // }
+    if (args.verbose) {
+        printf("\n");
+        print_superblock(&super_block);
+        printf("\n");
+        print_inode(found_inode);
+        printf("\n");
+    }
 
     if (found_inode->mode & DIRECTORY) {
         printf("%s:\n", args.path);
@@ -85,24 +80,10 @@ int main(int argc, char** argv) {
         print_file(found_inode, args.path);
     }
 
-    
-
-    // print_file(cur_inode_ind);
-    // print_dir(cur_inode_ind, dir)
 
     // walk the path
-    // if file
-        // print file
-    // else if dir
-        // print dir
-    // ?something for special file
-
-    // clean up and bring er home 
-
-
-    // walk the path
-    // free(inode_list);
-    // fclose(args.image_file);
+    free(inode_list);
+    fclose(args.image_file);
 
     return 0;
 }
