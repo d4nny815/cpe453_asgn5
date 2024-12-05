@@ -186,8 +186,14 @@ uint32_t traverse(MinArgs_t* args, uint32_t starting_inode,
     DirEntry_t* cur_dir_entry = NULL;
 
     bool token_found = true;
-    
+    bool is_dir = true;
+
     while (token) {
+        if (!is_dir) {
+            perror("trying to access file as directory");
+            return INVALID_INODE;
+        }
+
         token_found = false;
         uint32_t num_bytes_left = inode_list[cur_inode_ind].size;
 
@@ -216,6 +222,7 @@ uint32_t traverse(MinArgs_t* args, uint32_t starting_inode,
                 if (SAME_STR(cur_dir_entry->name,token)) {
                     token_found = true;
                     cur_inode_ind = cur_dir_entry->inode - 1;
+                    is_dir = (inode_list + cur_inode_ind)->mode & DIRECTORY;
                     break;
                 }
             }
