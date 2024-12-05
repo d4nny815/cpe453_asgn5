@@ -69,16 +69,11 @@ int main(int argc, char** argv) {
     }
 
     if (found_inode->mode & DIRECTORY) {
-        printf("%s:\n", args.path);
-        print_dir(
-            &args, found_inode, partition_addr, 
-            zone_size, super_block.blocksize
-        );
+        perror("Not a regular file");
+        exit(EXIT_FAILURE);
     } 
-    else {
-        print_file_contents(found_inode, args.image_file, 
-            zone_size, partition_addr);
-    }
+    print_file_contents(found_inode, args.image_file, 
+        zone_size, partition_addr);
 
 
     // walk the path
