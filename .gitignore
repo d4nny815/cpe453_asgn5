@@ -1,7 +1,7 @@
 *.o
 minls
 minget
-TestImage
 .vscode/
 log
 tryAsgn5
+
