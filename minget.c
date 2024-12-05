@@ -79,6 +79,7 @@ int main(int argc, char** argv) {
     // walk the path
     free(inode_list);
     fclose(args.image_file);
+    fclose(args.dst_file);
 
     return 0;
 }
