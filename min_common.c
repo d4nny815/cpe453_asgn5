@@ -2,6 +2,14 @@
 
 Inode_t* inode_list;
 
+
+/**
+ * desc - parse the arguments for the minls and minget programs
+ * argc: number of arguments
+ * argv: array of arguments
+ * minls: true if minls, false if minget
+ * args: struct to store the parsed arguments
+ */
 void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
     args->partnum = -1;
     args->subnum = -1;
@@ -97,6 +105,7 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
     return;
 }
 
+
 inline bool isvalid_minix_fs(SuperBlock_t* sup_block) {
     return sup_block->magic == MINIX_MAGIC_NUM;
 }
@@ -109,7 +118,11 @@ inline bool is_dir(Inode_t* inode) {
     return inode->mode & DIRECTORY;
 }
 
-
+/**
+ * desc - get the partition entry from the image file
+ * args: struct containing the parsed arguments
+ * entry: struct to store the partition entry
+ */
 void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry) {
     uint8_t block[BOOT_BLOCK_SIZE];
 
@@ -161,6 +174,13 @@ void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry) {
     return;
 }
 
+
+/**
+ * desc - get the superblock from the image file
+ * args: struct containing the parsed arguments
+ * entry: struct containing the partition entry
+ * sup_block: struct to store the superblock
+ */
 void get_superblock(MinArgs_t* args, PartitionTableEntry_t* entry, 
                     SuperBlock_t* sup_block) {
 
@@ -178,7 +198,16 @@ void get_superblock(MinArgs_t* args, PartitionTableEntry_t* entry,
     return;
 }
 
-
+/**
+ * desc - traverse the filesystem to find the inode of the file
+ * fp: file pointer to the image file
+ * path: path to the file
+ * starting_inode: inode to start the search from
+ * partition_addr: address of the partition
+ * zone_size: size of a zone
+ * block_size: size of a block
+ * return: inode number of the file or INVALID_INODE if not found
+ */
 uint32_t traverse(FILE* fp, char* path, uint32_t starting_inode, 
                 intptr_t partition_addr, 
                 size_t zone_size, size_t block_size) {
