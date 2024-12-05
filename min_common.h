@@ -116,7 +116,8 @@ bool isvalid_partition_table(uint8_t* boot_block);
 void get_superblock(MinArgs_t* args, PartitionTableEntry_t* entry, SuperBlock_t* sup_block);
 bool isvalid_minix_fs(SuperBlock_t* sup_block);
 
-void get_root_inode(); // TODO
+uint32_t get_inode(char* target, DirEntry_t* zone, uint32_t zone_size);
+
 
 
 // PRINTING
@@ -128,6 +129,6 @@ void print_dir(Inode_t inode, DirEntry_t* dir_entry);
 void print_file(Inode_t inode);
 
 extern Inode_t* inode_list;
-extern int cur_inode_ind;
+extern size_t cur_inode_ind;
 
 #endif /* min_common.h */

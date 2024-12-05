@@ -1,7 +1,7 @@
 #include "min_common.h"
 
 Inode_t* inode_list;
-int cur_inode_ind;
+size_t cur_inode_ind;
 
 void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
     args->partnum = -1;
