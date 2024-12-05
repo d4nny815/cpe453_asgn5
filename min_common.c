@@ -75,9 +75,16 @@ void parse_args(int argc, char** argv, bool minls, MinArgs_t* args) {
     }
     else {
         // src_path
-        strncpy(args->src_path, argv[++optind], PATH_MAX);
         if (++optind < argc) {
-            // dest_path
+            strncpy(args->src_path, argv[optind], PATH_MAX);
+        }
+        else {
+            perror("src not defined");
+            exit(EXIT_FAILURE);
+        }
+        
+        // dest_path
+        if (++optind < argc) {
             strncpy(args->dst_path, argv[optind], PATH_MAX);
         }
     }
