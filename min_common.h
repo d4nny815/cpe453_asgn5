@@ -95,6 +95,7 @@ typedef struct __attribute__ ((__packed__)) SuperBlock_t {
 } SuperBlock_t;
 
 #define DIRECT_ZONES    (7)
+#define INDIRECT_ZONES  (1024)
 typedef struct __attribute__ ((__packed__)) Inode_t {
     uint16_t mode; /* mode */
     uint16_t links; /* number or links */
@@ -132,6 +133,8 @@ void print_dir(Inode_t inode, DirEntry_t* dir_entry);
 void print_file(Inode_t inode, const char* path);
 
 void print_usage(bool minls);
+
+uint32_t traverse_file();
 
 
 extern Inode_t* inode_list;

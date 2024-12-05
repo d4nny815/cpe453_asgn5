@@ -176,6 +176,11 @@ uint32_t get_inode(char* target, DirEntry_t* zone, uint32_t zone_size) {
     return 0;
 }
 
+uint32_t traverse(char* path, uint32_t starting_inode, bool is_searching) {
+    
+}
+
+
 
 void print_usage(bool minls) {
     if (minls) {
@@ -321,7 +326,7 @@ void print_inode(Inode_t* inode) {
 void print_dir(Inode_t dir_inode, DirEntry_t* dir_entry) {
     for(int i = 0; i < dir_inode.size / sizeof(DirEntry_t); i++) {
         if (dir_entry->inode != 0) {
-            Inode_t inode = inode_list[dir_entry->inode - 1]; 
+            Inode_t inode = inode_list[dir_entry->inode]; 
             char* perms = decode_permissions(inode.mode);
             
             printf("%s %9d %s\n", perms, inode.size, dir_entry->name);
