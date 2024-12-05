@@ -185,7 +185,8 @@ uint32_t traverse(MinArgs_t* args, uint32_t starting_inode,
     uint32_t cur_inode_ind = starting_inode - 1;
     DirEntry_t* cur_dir_entry = NULL;
 
-    bool token_found = false;
+    bool token_found = true;
+    
     while (token) {
         token_found = false;
         uint32_t num_bytes_left = inode_list[cur_inode_ind].size;

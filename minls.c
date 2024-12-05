@@ -51,6 +51,11 @@ int main(int argc, char** argv) {
 
     uint32_t found_inode_num = traverse(&args, 
                                         ROOT_INODE, partition_addr, zone_size);
+    if (found_inode_num == INVALID_INODE) {
+        perror("file not found");
+        exit(EXIT_FAILURE);
+    }
+    
     Inode_t* found_inode = inode_list + (found_inode_num-1);        
 
     // Inode_t file_inode = inode_list[cur_inode_ind];
