@@ -106,7 +106,6 @@ inline bool isvalid_partition_table(uint8_t* boot_block) {
 
 void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry) {
     uint8_t block[BOOT_BLOCK_SIZE];
-    size_t bytes;
 
     PartitionTableEntry_t* temp_pt_entry;
 
@@ -115,7 +114,7 @@ void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry) {
     }
 
     fseek(args->image_file, 0, SEEK_SET);
-    bytes = fread(block, sizeof(uint8_t), BOOT_BLOCK_SIZE, args->image_file);
+    fread(block, sizeof(uint8_t), BOOT_BLOCK_SIZE, args->image_file);
     if (!isvalid_partition_table(block)) {
         perror("invalid partition table");
         exit(EXIT_FAILURE);
@@ -134,7 +133,7 @@ void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry) {
     }
 
     fseek(args->image_file, temp_pt_entry->lFirst * SECTOR_SIZE, SEEK_SET);
-    bytes = fread(block, sizeof(uint8_t), BOOT_BLOCK_SIZE, args->image_file);
+    fread(block, sizeof(uint8_t), BOOT_BLOCK_SIZE, args->image_file);
     if (!isvalid_partition_table(block)) {
         perror("invalid partition table");
         exit(EXIT_FAILURE);
@@ -154,12 +153,11 @@ void get_partition_entry(MinArgs_t* args, PartitionTableEntry_t* entry) {
 
 void get_superblock(MinArgs_t* args, PartitionTableEntry_t* entry, 
                     SuperBlock_t* sup_block) {
-    size_t bytes;
 
     size_t sup_block_addr = (args->partnum >= 0) * 
         entry->lFirst * SECTOR_SIZE + SB_OFFSET;
     fseek(args->image_file, sup_block_addr, SEEK_SET);
-    bytes = fread(sup_block, sizeof(SuperBlock_t), 1, args->image_file);
+    fread(sup_block, sizeof(SuperBlock_t), 1, args->image_file);
     
     if(!isvalid_minix_fs(sup_block)) {
         perror("MINIX magic number not found");
@@ -299,7 +297,7 @@ uint32_t traverse(FILE* fp, char* path, uint32_t starting_inode,
                             cur_inode = inode_list + cur_inode_ind;
 
                             is_dir = 
-                                (inode_list + cur_inode_ind)->mode & DIRECTORY;
+                                cur_inode->mode & DIRECTORY;
                             break;
                         }
                     }
@@ -368,6 +366,9 @@ uint32_t traverse(FILE* fp, char* path, uint32_t starting_inode,
                                     
                                     cur_inode_ind = cur_dir_entry->inode - 1;
                                     cur_inode = inode_list + cur_inode_ind;
+
+                                    is_dir = 
+                                        cur_inode->mode & DIRECTORY;
 
                                     break;
                                 }

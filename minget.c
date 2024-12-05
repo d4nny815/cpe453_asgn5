@@ -4,8 +4,6 @@ Inode_t* inode_list;
 size_t cur_inode_ind;
 
 int main(int argc, char** argv) {
-    size_t bytes;
-
     MinArgs_t args;
     PartitionTableEntry_t pt_entry;
     SuperBlock_t super_block;
@@ -39,7 +37,7 @@ int main(int argc, char** argv) {
     if (err == -1) {
         exit(EXIT_FAILURE);
     }
-    bytes = fread(inode_list, sizeof(Inode_t), 
+    fread(inode_list, sizeof(Inode_t), 
         super_block.ninodes, 
         args.image_file
     );
@@ -67,9 +65,13 @@ int main(int argc, char** argv) {
         print_inode(found_inode);
         printf("\n");
     }
-
-    if (found_inode->mode & DIRECTORY) {
-        perror("Not a regular file");
+    
+    if ((found_inode->mode & FILE_TYPE_MASK) == SYM_LINK) {
+        perror("symlinks do not exist");
+        exit(EXIT_FAILURE);
+    } 
+    if ((found_inode->mode & FILE_TYPE_MASK) != REGULAR_FILE) {
+        perror("not a file");
         exit(EXIT_FAILURE);
     } 
     print_file_contents(found_inode, args.image_file, 

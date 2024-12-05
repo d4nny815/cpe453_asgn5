@@ -4,8 +4,6 @@ Inode_t* inode_list;
 size_t cur_inode_ind;
 
 int main(int argc, char** argv) {
-    size_t bytes;
-
     MinArgs_t args;
     PartitionTableEntry_t pt_entry;
     SuperBlock_t super_block;
@@ -39,7 +37,7 @@ int main(int argc, char** argv) {
     if (err == -1) {
         exit(EXIT_FAILURE);
     }
-    bytes = fread(inode_list, sizeof(Inode_t), 
+    fread(inode_list, sizeof(Inode_t), 
         super_block.ninodes, 
         args.image_file
     );

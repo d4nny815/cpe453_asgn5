@@ -30,6 +30,7 @@
 #define DEFAULT_PATH    ("/")
 
 #define FILE_TYPE_MASK  (0xF000)
+#define SYM_LINK        (0xA000)
 #define REGULAR_FILE    (0x8000)
 #define DIRECTORY       (0x4000)
 #define OWNER_READ      (0x100)
